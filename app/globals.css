@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #4a4a4a;
+  --radius: 0.75rem;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Termo técnico mantido no idioma de referência (ex: inglês) dentro de texto traduzido automaticamente */
+.glossary-term {
+  font-style: italic;
+  border-bottom: 1px dotted currentColor;
+}
