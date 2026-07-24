@@ -1,13 +1,8 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { sections } from "@/lib/content/sections";
-import { isLocale, languages } from "@/lib/locales";
 import { Icon } from "@/components/icon";
 
-export default function HomePage({ params }: { params: { locale: string } }) {
-  if (!isLocale(params.locale) || !languages[params.locale].enabled) notFound();
-  const locale = params.locale;
-
+export default function HomePage() {
   return (
     <div>
       <section className="mb-10 text-center sm:mb-14">
@@ -24,7 +19,7 @@ export default function HomePage({ params }: { params: { locale: string } }) {
         {sections.map((section) => (
           <Link
             key={section.slug}
-            href={`/${locale}/${section.slug}`}
+            href={`/${section.slug}`}
             className="group flex items-start gap-4 rounded-2xl border border-coral-800/10 bg-white/80 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
           >
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-coral-glow text-white">

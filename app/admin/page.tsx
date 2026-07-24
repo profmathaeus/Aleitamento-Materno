@@ -49,7 +49,7 @@ export default async function AdminHomePage() {
                 {statusLabel[ptTranslation?.status ?? ""] ?? "—"}
               </span>
               <Link
-                href={`/pt/${section.slug}`}
+                href={`/${section.slug}`}
                 target="_blank"
                 className="text-xs font-medium text-coral-800 hover:underline"
               >

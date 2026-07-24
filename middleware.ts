@@ -1,30 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
-import { defaultLocale, locales } from "@/lib/locales";
 
 type CookieToSet = { name: string; value: string; options: CookieOptions };
 
-// Fase 1: qualquer visita à raiz "/" (fora de /admin) é redirecionada para
-// o idioma padrão (pt). Fase 2: passa a ler Accept-Language e o cookie
-// NEXT_LOCALE para escolher entre os 8 idiomas habilitados.
+// Só protege /admin (login por magic link). O site público não passa por
+// nenhuma checagem.
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  if (pathname.startsWith("/admin")) {
-    return handleAdminAuth(request);
-  }
-
-  const hasLocale = locales.some(
-    (locale) => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`)
-  );
-  if (hasLocale) return NextResponse.next();
-
-  const url = request.nextUrl.clone();
-  url.pathname = `/${defaultLocale}${pathname}`;
-  return NextResponse.redirect(url);
-}
-
-async function handleAdminAuth(request: NextRequest) {
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -69,5 +50,5 @@ async function handleAdminAuth(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next|api|favicon.ico|.*\\..*).*)"],
+  matcher: ["/admin/:path*"],
 };

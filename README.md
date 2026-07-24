@@ -1,8 +1,7 @@
 # Aleitamento Materno — Guia para famílias e profissionais
 
-Site com o guia de aleitamento materno da cliente. Plano completo em
-`.claude/plans` (referência: `proud-bubbling-yeti.md` na sessão em que foi
-criado) e resumo das fases abaixo.
+Site com o guia de aleitamento materno da cliente. Online em produção via
+Vercel, conectado ao GitHub (`profmathaeus/Aleitamento-Materno`).
 
 ## Rodando localmente
 
@@ -11,14 +10,14 @@ npm install
 npm run dev
 ```
 
-Abra http://localhost:3000 — redireciona para `/pt`.
+Abra http://localhost:3000.
 
-## Onde está o conteúdo (Fase 1)
+## Onde está o conteúdo
 
-Nesta fase o site funciona **sem precisar de banco de dados**: todo o
-conteúdo em português vem de [lib/content/sections.ts](lib/content/sections.ts)
-(19 seções + tabelas, extraídas do guia original da cliente). Para editar
-um texto agora, é esse o arquivo a alterar.
+Todo o conteúdo em português vem de
+[lib/content/sections.ts](lib/content/sections.ts) (19 seções + tabelas,
+extraídas do guia original da cliente) — isso alimenta tanto o site público
+quanto o `supabase/seed.sql`.
 
 ## Identidade visual
 
@@ -26,38 +25,46 @@ Paleta "coral glow" (mesma do tema configurado no Gamma da cliente) e fonte
 DM Sans, configuradas em [tailwind.config.ts](tailwind.config.ts) e
 [app/globals.css](app/globals.css).
 
-## Estrutura de idiomas
+## Idiomas
 
-8 idiomas estão modelados em [lib/locales.ts](lib/locales.ts) (PT, EN, ES,
-JA, DE, AR, IT, FR), mas só **PT está habilitado** por enquanto — os outros
-aparecem no seletor de idioma como "em breve". Isso evita retrabalho: as
-rotas já são `app/[locale]/...`, então ativar um idioma na Fase 2 é só
-marcar `enabled: true` depois que o conteúdo traduzido existir.
+O site é só em português. Quem lê em outro idioma usa a **tradução nativa
+do próprio navegador** (Chrome/Edge/Safari oferecem isso automaticamente,
+sem custo e sem configuração) — por isso não existe roteamento por idioma
+nem pipeline de tradução próprio no código.
 
-## Próximos passos (Fase 2 — banco de dados + tradução automática + admin)
+## Painel de administração
 
-Isso exige decisões e contas que só quem é dona do projeto pode
-criar/fornecer:
+- `/admin` — protegido por login com **magic link** (Supabase Auth, sem
+  senha). Link discreto "Área administrativa" no rodapé do site público.
+- Primeiro acesso: a pessoa faz login normalmente (cria conta no
+  Supabase Auth), mas só enxerga o painel depois de alguém rodar, no SQL
+  Editor do Supabase:
+  ```sql
+  insert into admin_profiles (user_id, display_name, role)
+  select id, 'Nome da pessoa', 'admin' from auth.users where email = 'email@da-pessoa.com';
+  ```
+- Schema completo do banco em [supabase/schema.sql](supabase/schema.sql).
+- Para atualizar o conteúdo semeado no banco depois de editar
+  `lib/content/sections.ts`, rode `npx tsx scripts/generate-seed-sql.ts` e
+  execute o `supabase/seed.sql` gerado no SQL Editor.
 
-1. **Criar um projeto no [Supabase](https://supabase.com)** (gratuito para
-   começar) e me passar a Project URL + as chaves (anon key e service role
-   key) — nunca cole a service role key em um chat público, prefira colar
-   num arquivo `.env.local` que eu leio localmente.
-2. Rodar [supabase/schema.sql](supabase/schema.sql) no SQL Editor do
-   projeto — cria todas as tabelas (seções, traduções, glossário técnico,
-   perfis de admin) já com as políticas de segurança (RLS).
-3. Rodar `npx tsx scripts/generate-seed-sql.ts` sempre que
-   `lib/content/sections.ts` mudar, para gerar/atualizar
-   [supabase/seed.sql](supabase/seed.sql) com o conteúdo real — depois
-   rodar esse arquivo no SQL Editor para popular o banco.
-4. Criar um projeto no **[Google Cloud](https://cloud.google.com/translate)**
-   e ativar a Cloud Translation API (tem plano gratuito com limite mensal)
-   para a tradução automática dos outros 7 idiomas.
-5. Conectar o repositório a uma conta no **GitHub** e um projeto na
-   **Vercel** para o deploy (posso te guiar nesse passo, mas a criação da
-   conta e login são feitos por você).
+## Variáveis de ambiente
 
-Depois disso eu implemento: o painel de admin com login por magic link,
-editor de texto rico para as leigas incluírem conteúdo, e o pipeline de
-tradução automática com o glossário técnico (termos em inglês dentro dos
-textos em japonês/alemão/árabe/italiano/francês).
+Necessárias em `.env.local` (local) e nas Environment Variables do projeto
+na Vercel (produção):
+
+```
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+```
+
+## Ainda pendente
+
+- Adicionar o domínio de produção (Vercel) na lista de **Redirect URLs**
+  em Supabase → Authentication → URL Configuration, para o login por
+  magic link funcionar também online (hoje só está liberado para
+  `localhost`).
+- Editor de conteúdo dentro do `/admin` (por enquanto o painel só lista as
+  seções para conferir que o banco está conectado — editar ainda é feito
+  em `lib/content/sections.ts`).
