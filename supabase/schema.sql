@@ -49,11 +49,13 @@ create table section_translations (
   section_id uuid not null references sections(id) on delete cascade,
   language_code text not null references languages(code),
   title text,
+  subtitle text,
   body jsonb,                    -- documento Tiptap
   body_html_cache text,          -- HTML renderizado (SSR + input da tradução)
   status text not null default 'draft'
     check (status in ('draft','machine_translated','reviewed','published')),
   is_manual_override boolean not null default false,  -- protege correção manual de re-tradução
+  needs_retranslation boolean not null default false,  -- true quando o PT mudou e esse idioma ainda não foi atualizado
   source_hash text,
   translated_at timestamptz,
   translation_engine text,

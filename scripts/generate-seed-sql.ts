@@ -3,38 +3,10 @@
 // Rodar de novo sempre que o conteúdo em lib/content/sections.ts mudar.
 import { writeFileSync } from "node:fs";
 import { sections } from "../lib/content/sections";
-import type { Block } from "../lib/content/types";
+import { blocksToHtml } from "../lib/content/render-html";
 
 function esc(value: string): string {
   return value.replace(/'/g, "''");
-}
-
-function blocksToHtml(blocks: Block[]): string {
-  return blocks
-    .map((block) => {
-      switch (block.type) {
-        case "heading":
-          return `<h${block.level}>${block.text}</h${block.level}>`;
-        case "paragraph":
-          return `<p>${block.text}</p>`;
-        case "list":
-          return `<ul>${block.items.map((i) => `<li>${i}</li>`).join("")}</ul>`;
-        case "callout":
-          return `<div class="callout callout-${block.tone}"><strong>${block.title}</strong><p>${block.text}</p></div>`;
-        case "table":
-          return (
-            `<table>` +
-            (block.caption ? `<caption>${block.caption}</caption>` : "") +
-            `<thead><tr>${block.columns.map((c) => `<th>${c}</th>`).join("")}</tr></thead>` +
-            `<tbody>${block.rows
-              .map((row) => `<tr>${row.map((cell) => `<td>${cell}</td>`).join("")}</tr>`)
-              .join("")}</tbody></table>`
-          );
-        default:
-          return "";
-      }
-    })
-    .join("\n");
 }
 
 const lines: string[] = [
@@ -57,9 +29,10 @@ sections.forEach((section, index) => {
   const html = blocksToHtml(section.blocks);
   const bodyJson = JSON.stringify({ blocks: section.blocks, faqItems: section.faqItems ?? [] });
 
+  const subtitleValue = section.subtitle ? `'${esc(section.subtitle)}'` : "null";
   lines.push(
-    `insert into section_translations (section_id, language_code, title, body, body_html_cache, status, translated_at, translation_engine)`,
-    `select id, 'pt', '${esc(section.title)}', '${esc(bodyJson)}'::jsonb, '${esc(html)}', 'published', now(), 'manual'`,
+    `insert into section_translations (section_id, language_code, title, subtitle, body, body_html_cache, status, translated_at, translation_engine)`,
+    `select id, 'pt', '${esc(section.title)}', ${subtitleValue}, '${esc(bodyJson)}'::jsonb, '${esc(html)}', 'published', now(), 'manual'`,
     `from ${sectionVar};`,
     ""
   );

@@ -26,3 +26,12 @@ export interface Section {
   blocks: Block[];
   faqItems?: FaqItem[];
 }
+
+// Conteúdo traduzido de uma seção (mesma forma de Section, sem os campos
+// agnósticos de idioma como slug/icon/contentKind, que vêm de sections.ts).
+export interface SectionTranslation {
+  title: string;
+  subtitle?: string;
+  blocks: Block[];
+  faqItems?: FaqItem[];
+}
